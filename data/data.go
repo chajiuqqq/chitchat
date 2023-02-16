@@ -20,8 +20,14 @@ type (
 		UserId   int
 		CreateAt time.Time
 	}
-
 )
+
+type Text interface {
+	Fetch(id int) (err error)
+	Create() (err error)
+	Update() (err error)
+	Delete() (err error)
+}
 
 func init() {
 	var err error
@@ -30,7 +36,6 @@ func init() {
 		log.Fatal(err)
 	}
 }
-
 
 func UserByEmail(email string) {
 

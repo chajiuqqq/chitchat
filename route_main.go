@@ -25,35 +25,38 @@ func index(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func handleRequest(w http.ResponseWriter, r *http.Request) {
-	var err error
-	log.Println(r.Method,r.URL.Path)
-	switch r.Method {
-	case "GET":
-		err = handleGet(w, r)
-	case "POST":
-		err = handlePost(w, r)
-	case "PUT":
-		err = handlePut(w, r)
-	case "DELETE":
-		err = handleDelete(w, r)
+func handleRequest(t data.Text) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var err error
+		log.Println(r.Method, r.URL.Path)
+		switch r.Method {
+		case "GET":
+			err = handleGet(w, r, t)
+		case "POST":
+			err = handlePost(w, r, t)
+		case "PUT":
+			err = handlePut(w, r, t)
+		case "DELETE":
+			err = handleDelete(w, r, t)
+		}
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 	}
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
+
 }
 
-func handleGet(w http.ResponseWriter, r *http.Request) (err error) {
+func handleGet(w http.ResponseWriter, r *http.Request, t data.Text) (err error) {
 	id, err := strconv.Atoi(path.Base(r.URL.Path))
 	if err != nil {
 		return err
 	}
-	post, err := data.GetPost(id)
+	err = t.Fetch(id)
 	if err != nil {
 		return err
 	}
-	bytes, err := json.MarshalIndent(post, "", "\t")
+	bytes, err := json.MarshalIndent(t, "", "\t")
 
 	if err != nil {
 		return err
@@ -62,41 +65,40 @@ func handleGet(w http.ResponseWriter, r *http.Request) (err error) {
 	w.Write(bytes)
 	return
 }
-func handlePost(w http.ResponseWriter, r *http.Request) (err error) {
-	var post data.Post
-	err = json.NewDecoder(r.Body).Decode(&post)
+func handlePost(w http.ResponseWriter, r *http.Request, t data.Text) (err error) {
+	err = json.NewDecoder(r.Body).Decode(&t)
 	if err != nil {
 		return
 	}
-	err = post.Create()
+	err = t.Create()
 	return
 }
-func handlePut(w http.ResponseWriter, r *http.Request) (err error) {
+func handlePut(w http.ResponseWriter, r *http.Request, t data.Text) (err error) {
 	id, err := strconv.Atoi(path.Base(r.URL.Path))
 	if err != nil {
 		return
 	}
-	post, err := data.GetPost(id)
+	err = t.Fetch(id)
 	if err != nil {
 		return
 	}
-	err = json.NewDecoder(r.Body).Decode(&post)
+	err = json.NewDecoder(r.Body).Decode(&t)
 	if err != nil {
 		return
 	}
-	err = post.Update()
+	err = t.Update()
 	return
 }
-func handleDelete(w http.ResponseWriter, r *http.Request) (err error) {
+func handleDelete(w http.ResponseWriter, r *http.Request, t data.Text) (err error) {
 	id, err := strconv.Atoi(path.Base(r.URL.Path))
 	if err != nil {
 		return
 	}
-	post, err := data.GetPost(id)
+	err = t.Fetch(id)
 	if err != nil {
 		return
 	}
-	err = post.Delete()
+	err = t.Delete()
 	if err != nil {
 		return
 	}
