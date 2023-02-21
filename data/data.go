@@ -1,46 +1,57 @@
 package data
 
 import (
-	"database/sql"
 	"log"
-	"time"
 
-	_ "github.com/lib/pq"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
 var (
-	Db *sql.DB
+	Db *gorm.DB
 )
 
 type (
 	Session struct {
-		Id       int
+		gorm.Model
+		Uuid   string
+		Email  string
+		UserId uint
+	}
+
+	Post struct {
+		gorm.Model
+		Uuid     string `json:"uuid"`
+		Body     string `json:"body"`
+		UserId   uint   `json:"user_id"`
+		ThreadId uint   `json:"thread_id"`
+		User     User
+	}
+
+	Thread struct {
+		gorm.Model
+		Uuid   string
+		Topic  string
+		UserId uint
+		Posts  []Post
+		User   User
+	}
+
+	User struct {
+		gorm.Model
 		Uuid     string
+		Name     string
 		Email    string
-		UserId   int
-		CreateAt time.Time
+		Password string
 	}
 )
 
-type Text interface {
-	Fetch(id int) (err error)
-	Create() (err error)
-	Update() (err error)
-	Delete() (err error)
-}
-
 func init() {
 	var err error
-	Db, err = sql.Open("postgres", "user=postgres password=mkQ445683 dbname=chitchat sslmode=disable")
+	dsn := "user=postgres password=mkQ445683 dbname=chitchat sslmode=disable"
+	Db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		log.Fatal(err)
 	}
-}
-
-func UserByEmail(email string) {
-
-}
-
-func (sess *Session) Check() (ok bool, err error) {
-	return
+	Db.AutoMigrate(&Post{}, &Thread{}, &Session{}, &User{})
 }
