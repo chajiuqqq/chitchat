@@ -1,13 +1,15 @@
 package main
 
 import (
-	"log"
 	"net/http"
 
 	_ "github.com/chajiuqqq/chitchat/data"
+	"github.com/rs/zerolog/log"
 )
 
 func main() {
+	log.Info().Msgf("Chitchat %s start at %s", Config.Version, Config.Port)
+
 	mux := http.NewServeMux()
 	files := http.FileServer(http.Dir("public"))
 	mux.Handle("/static/", http.StripPrefix("/static/", files))
@@ -26,10 +28,8 @@ func main() {
 	mux.HandleFunc("/thread/read", readThread)
 
 	server := &http.Server{
-		Addr:    ":8080",
+		Addr:    Config.Port,
 		Handler: mux,
 	}
-	println("...")
-	log.Println("start server at 8080")
 	server.ListenAndServe()
 }

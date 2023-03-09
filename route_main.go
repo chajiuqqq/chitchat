@@ -1,16 +1,17 @@
 package main
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/chajiuqqq/chitchat/data"
+	"github.com/rs/zerolog/log"
 )
 
 func index(w http.ResponseWriter, r *http.Request) {
 	threads, err := data.Threads()
 	if err != nil {
-		log.Fatalln("can't get threads:", err)
+		log.Error().Err(err).Msg("can't get threads")
+		errorMsg(w,r,"can't get threads")
 	} else {
 		_, err = SessionCheck(w, r)
 		if err == nil {
