@@ -2,34 +2,68 @@ package main
 
 import (
 	"net/http"
+	"text/template"
+	"time"
 
 	_ "github.com/chajiuqqq/chitchat/data"
+	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog/log"
 )
 
+func myLoginCheck() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		sess, err := SessionCheck(c.Writer, c.Request)
+		if err != nil {
+			c.Redirect(http.StatusFound, "/login")
+		}
+		c.Set("sess", sess)
+		c.Next()
+
+	}
+}
+func recovery() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		defer func() {
+			if err := recover(); err != nil {
+				errorMsg(c, err.(error).Error())
+			}
+			switch c.Writer.Status() {
+			case 200:
+				return
+			case 404:
+				errorMsg(c, "404 Not Found")
+
+			}
+		}()
+		c.Next()
+	}
+}
+
 func main() {
 	log.Info().Msgf("Chitchat %s start at %s", Config.Version, Config.Port)
+	r := gin.New()
+	r.Use(gin.Logger(), recovery())
+	r.SetFuncMap(template.FuncMap{
+		"timeFormat": func(t time.Time) string {
+			return t.Format("2006.01.02 15:04:05")
+		},
+	})
+	r.LoadHTMLGlob("templates/**/*")
+	r.Static("/static", "./public")
+	r.GET("/", index)
+	r.GET("/err", err)
+	r.GET("/login", login)
+	r.GET("/logout", logout)
+	r.GET("/signup", signup)
 
-	mux := http.NewServeMux()
-	files := http.FileServer(http.Dir("public"))
-	mux.Handle("/static/", http.StripPrefix("/static/", files))
-	mux.HandleFunc("/", index)
+	r.POST("/signup_account", signupAccount)
+	r.POST("/authenticate", authenticate)
+	r.GET("/thread/read/:tid", readThread)
 
-	mux.HandleFunc("/err", err)
-	mux.HandleFunc("/login", login)
-	mux.HandleFunc("/logout", logout)
-	mux.HandleFunc("/signup", signup)
-	mux.HandleFunc("/signup_account", signupAccount)
-	mux.HandleFunc("/authenticate", authenticate)
-
-	mux.HandleFunc("/thread/new", newThread)
-	mux.HandleFunc("/thread/create", createThread)
-	mux.HandleFunc("/thread/post", postThread)
-	mux.HandleFunc("/thread/read", readThread)
-
-	server := &http.Server{
-		Addr:    Config.Port,
-		Handler: mux,
-	}
-	server.ListenAndServe()
+	threadGroup := r.Group("/thread")
+	threadGroup.Use(myLoginCheck())
+	threadGroup.GET("/new", newThread)
+	threadGroup.POST("/create", createThread)
+	threadGroup.POST("/post", postThread)
+	r.Run(":8080")
 }

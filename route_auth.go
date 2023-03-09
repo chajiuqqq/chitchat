@@ -2,62 +2,48 @@ package main
 
 import (
 	"net/http"
-	"time"
 
 	"github.com/chajiuqqq/chitchat/data"
+	"github.com/gin-gonic/gin"
 )
 
-func authenticate(w http.ResponseWriter, r *http.Request) {
-	user, _ := data.UserByEmail(r.FormValue("email"))
-	if user.Password == data.Encrypt(r.FormValue("password")) {
+func authenticate(c *gin.Context) {
+	user, _ := data.UserByEmail(c.PostForm("email"))
+	if user.Password == data.Encrypt(c.PostForm("password")) {
 		session := newSession(user)
-		cookie := http.Cookie{
-			Name:     "_cookie",
-			Value:    session.Uuid,
-			HttpOnly: true,
-		}
-		http.SetCookie(w, &cookie)
-		http.Redirect(w, r, "/", 302)
+		c.SetCookie("_cookie", session.Uuid, 3600, "/", "localhost", true, true)
+		c.Redirect(http.StatusFound, "/")
 	} else {
-		http.Redirect(w, r, "/login", 302)
+		c.Redirect(http.StatusFound, "/login")
 	}
+
 }
 
-func login(w http.ResponseWriter, r *http.Request) {
-	generateHTML(w, nil, "login.layout", "login", "public.navbar")
+func login(c *gin.Context) {
+	c.HTML(200, "login.tmpl", gin.H{"IsPublic": true})
 }
 
-func logout(w http.ResponseWriter, r *http.Request) {
-	cookie := http.Cookie{
-		Name:     "_cookie",
-		HttpOnly: true,
-		MaxAge:   -1,
-		Expires:  time.Unix(1, 0),
-	}
-	http.SetCookie(w, &cookie)
-	http.Redirect(w, r, "/", 302)
+func logout(c *gin.Context) {
+	c.SetCookie("_cookie", "", -1, "/", "localhost", true, true)
+	c.Redirect(http.StatusFound, "/")
 }
 
-func signup(w http.ResponseWriter, r *http.Request) {
-	generateHTML(w, nil, "login.layout", "signup", "public.navbar")
+func signup(c *gin.Context) {
+	c.HTML(200, "signup.tmpl", gin.H{"IsPublic": true})
 }
 
-func signupAccount(w http.ResponseWriter, r *http.Request) {
+func signupAccount(c *gin.Context) {
 	user := data.User{
-		Name:     r.FormValue("name"),
-		Email:    r.FormValue("email"),
-		Password: data.Encrypt(r.FormValue("password")),
+		Name:     c.PostForm("name"),
+		Email:    c.PostForm("email"),
+		Password: data.Encrypt(c.PostForm("password")),
 		Uuid:     generateUuid(),
 	}
 	data.Db.Create(&user)
-	http.Redirect(w, r, "/login", 302)
+	c.Redirect(http.StatusFound, "/")
 }
 
-func err(w http.ResponseWriter, r *http.Request) {
-	_, err := SessionCheck(w, r)
-	if err == nil {
-		generateHTML(w, r.FormValue("msg"), "layout", "private.navbar", "error")
-	} else {
-		generateHTML(w, r.FormValue("msg"), "layout", "public.navbar", "error")
-	}
+func err(c *gin.Context) {
+	_, err := SessionCheck(c.Writer, c.Request)
+	c.HTML(200, "error.tmpl", gin.H{"IsPublic": err != nil, "Msg": c.Query("msg")})
 }

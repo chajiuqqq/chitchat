@@ -1,0 +1,15 @@
+{{ define "error.tmpl" }}
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    {{ template "header.tmpl" .}}
+  </head>
+  <body>
+    {{ template "navbar.tmpl" .}}
+    <div class="container">
+      <p class="lead">{{ .Msg }}</p>
+    </div>
+  </body>
+</html>
+{{ end }}

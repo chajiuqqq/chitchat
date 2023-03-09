@@ -1,5 +1,7 @@
 package data
 
+import "log"
+
 func Threads() (threads []Thread, err error) {
 	//要获取thread里的post，用预加载Preload+字段名，这里就是“Posts”。
 	//再获取Post里的User需要用嵌套预加载："Posts.User"
@@ -14,4 +16,13 @@ func (t *Thread) NumReplies() int {
 
 func (t *Thread) CreatedAtFormat() string {
 	return t.CreatedAt.Format("2006.01.02 15:04:05")
+}
+
+func GetThread(tid string) (*Thread, error) {
+	thread := &Thread{}
+	err := Db.Preload("Posts").Preload("Posts.User").Preload("User").Where("uuid=?", tid).First(&thread).Error
+	if err != nil {
+		log.Println("fail to find thread,", err)
+	}
+	return thread, err
 }

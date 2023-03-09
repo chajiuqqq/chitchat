@@ -1,0 +1,52 @@
+{{ define "signup.tmpl" }}
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    {{ template "header.tmpl" .}}
+    <link href="/static/css/login.css" rel="stylesheet" />
+  </head>
+  <body>
+    {{ template "navbar.tmpl" .}}
+    <div class="container">
+      <form
+        class="form-signin"
+        role="form"
+        action="/signup_account"
+        method="post"
+      >
+        <h2 class="form-signin-heading">
+          <i class="fa fa-comments-o"> ChitChat </i>
+        </h2>
+        <div class="lead">Sign up for an account below</div>
+        <input
+          id="name"
+          type="text"
+          name="name"
+          class="form-control"
+          placeholder="Name"
+          required
+          autofocus
+        />
+        <input
+          type="email"
+          name="email"
+          class="form-control"
+          placeholder="Email address"
+          required
+        />
+        <input
+          type="password"
+          name="password"
+          class="form-control"
+          placeholder="Password"
+          required
+        />
+        <button class="btn btn-lg btn-primary btn-block" type="submit">
+          Sign up
+        </button>
+      </form>
+    </div>
+  </body>
+</html>
+{{ end }}

@@ -25,7 +25,7 @@ type (
 		Body     string `json:"body"`
 		UserId   uint   `json:"user_id"`
 		ThreadId uint   `json:"thread_id"`
-		User     User
+		User     *User
 	}
 
 	Thread struct {
@@ -33,8 +33,8 @@ type (
 		Uuid   string
 		Topic  string
 		UserId uint
-		Posts  []Post
-		User   User
+		Posts  []*Post
+		User   *User
 	}
 
 	User struct {

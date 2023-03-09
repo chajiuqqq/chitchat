@@ -1,6 +1,7 @@
 package data
 
 import (
+	"encoding/json"
 	"log"
 	"testing"
 )
@@ -16,4 +17,13 @@ func TestThreads(t *testing.T) {
 			log.Println(t.Topic, ":", p.User.Name)
 		}
 	}
+}
+
+func TestGetThread(t *testing.T) {
+	th, err := GetThread("713")
+	if err != nil {
+		t.Fatal(err)
+	}
+	bytes, _ := json.MarshalIndent(th, "", "\t")
+	t.Log(string(bytes))
 }

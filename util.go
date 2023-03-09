@@ -12,6 +12,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog"
 
 	"github.com/rs/zerolog/log"
@@ -88,9 +89,9 @@ func SessionCheck(w http.ResponseWriter, r *http.Request) (sess *data.Session, e
 	return
 }
 
-func errorMsg(w http.ResponseWriter, r *http.Request, msg string) {
+func errorMsg(c *gin.Context, msg string) {
 	url := []string{"/err?msg=", msg}
-	http.Redirect(w, r, strings.Join(url, ""), 302)
+	c.Redirect(http.StatusFound,strings.Join(url, ""))
 }
 
 func newSession(u data.User) (sess data.Session) {
