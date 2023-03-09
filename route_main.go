@@ -12,8 +12,8 @@ func index(c *gin.Context) {
 		log.Error().Err(err).Msg("can't get threads")
 		errorMsg(c, "can't get threads")
 	} else {
-		_, err = SessionCheck(c.Writer, c.Request)
-		c.HTML(200, "index.tmpl", &gin.H{"IsPublic": err != nil, "Threads": threads})
+		_,exist:=c.Get("sess")
+		c.HTML(200, "index.tmpl", &gin.H{"IsPublic": !exist, "Threads": threads})
 	}
 
 }

@@ -12,13 +12,20 @@ import (
 
 func myLoginCheck() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		sess, err := SessionCheck(c.Writer, c.Request)
-		if err != nil {
+		sess, err := SessionCheck(c)
+		if err == nil {
+			c.Set("sess", sess)
+		}
+		c.Next()
+	}
+}
+
+func myAuth() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if _, exist := c.Get("sess"); !exist {
 			c.Redirect(http.StatusFound, "/login")
 		}
-		c.Set("sess", sess)
 		c.Next()
-
 	}
 }
 func recovery() gin.HandlerFunc {
@@ -42,7 +49,7 @@ func recovery() gin.HandlerFunc {
 func main() {
 	log.Info().Msgf("Chitchat %s start at %s", Config.Version, Config.Port)
 	r := gin.New()
-	r.Use(gin.Logger(), recovery())
+	r.Use(gin.Logger(), myLoginCheck(), recovery())
 	r.SetFuncMap(template.FuncMap{
 		"timeFormat": func(t time.Time) string {
 			return t.Format("2006.01.02 15:04:05")
@@ -61,7 +68,7 @@ func main() {
 	r.GET("/thread/read/:tid", readThread)
 
 	threadGroup := r.Group("/thread")
-	threadGroup.Use(myLoginCheck())
+	threadGroup.Use(myAuth())
 	threadGroup.GET("/new", newThread)
 	threadGroup.POST("/create", createThread)
 	threadGroup.POST("/post", postThread)

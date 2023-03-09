@@ -78,10 +78,10 @@ func generateUuid() string {
 	return strconv.Itoa(rand.Intn(9999))
 }
 
-func SessionCheck(w http.ResponseWriter, r *http.Request) (sess *data.Session, err error) {
-	cookie, err := r.Cookie("_cookie")
+func SessionCheck(c *gin.Context) (sess *data.Session, err error) {
+	cookie, err := c.Cookie("_cookie")
 	if err == nil {
-		sess = &data.Session{Uuid: cookie.Value}
+		sess = &data.Session{Uuid: cookie}
 		if ok, _ := sess.Check(); !ok {
 			err = errors.New("Invalid session")
 		}

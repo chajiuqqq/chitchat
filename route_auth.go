@@ -12,6 +12,7 @@ func authenticate(c *gin.Context) {
 	if user.Password == data.Encrypt(c.PostForm("password")) {
 		session := newSession(user)
 		c.SetCookie("_cookie", session.Uuid, 3600, "/", "localhost", true, true)
+		c.Set("sess",session)
 		c.Redirect(http.StatusFound, "/")
 	} else {
 		c.Redirect(http.StatusFound, "/login")
@@ -44,6 +45,6 @@ func signupAccount(c *gin.Context) {
 }
 
 func err(c *gin.Context) {
-	_, err := SessionCheck(c.Writer, c.Request)
-	c.HTML(200, "error.tmpl", gin.H{"IsPublic": err != nil, "Msg": c.Query("msg")})
+	_,exist:=c.Get("sess")
+	c.HTML(200, "error.tmpl", gin.H{"IsPublic": !exist, "Msg": c.Query("msg")})
 }

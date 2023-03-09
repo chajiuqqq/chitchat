@@ -35,7 +35,7 @@ func postThread(c *gin.Context) {
 		&data.Post{Uuid: generateUuid(), Body: body, UserId: sess.UserId},
 	)
 
-	url := fmt.Sprint("/thread/read?id=", uuid)
+	url := fmt.Sprintf("/thread/read/%s", uuid)
 	c.Redirect(http.StatusFound, url)
 }
 
