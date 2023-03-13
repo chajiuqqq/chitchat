@@ -2,6 +2,8 @@ package rpc
 
 import (
 	"context"
+	"fmt"
+	"log"
 	"sync"
 
 	"github.com/chajiuqqq/chitchat/common/entity"
@@ -29,20 +31,30 @@ func New() *rpcClient {
 
 	go func() {
 		defer wg.Done()
-		serviceAddress := "127.0.0.1:8100"
-		conn, err := grpc.Dial(serviceAddress, grpc.WithInsecure())
+		srvName := "authService"
+		srv, err := NewDiscoveryClient().DiscoverService(srvName)
 		if err != nil {
-			panic("connect error")
+			log.Panic(err)
+		}
+		address := fmt.Sprintf("%s:%d", srv.Address, srv.Port)
+		conn, err := grpc.Dial(address, grpc.WithInsecure())
+		if err != nil {
+			log.Panic("connect error")
 		}
 		myAuthClient = pb.NewAuthServiceClient(conn)
 	}()
 
 	go func() {
 		defer wg.Done()
-		serviceAddress := "127.0.0.1:8000"
-		conn, err := grpc.Dial(serviceAddress, grpc.WithInsecure())
+		srvName := "threadService"
+		srv, err := NewDiscoveryClient().DiscoverService(srvName)
 		if err != nil {
-			panic("connect error")
+			log.Panic(err)
+		}
+		address := fmt.Sprintf("%s:%d", srv.Address, srv.Port)
+		conn, err := grpc.Dial(address, grpc.WithInsecure())
+		if err != nil {
+			log.Panic("connect error")
 		}
 		myThreadServiceClient = pb.NewThreadServiceClient(conn)
 	}()

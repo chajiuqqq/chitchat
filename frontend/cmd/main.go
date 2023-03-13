@@ -72,8 +72,8 @@ func main() {
 			return 0
 		},
 	})
-	r.LoadHTMLGlob("../templates/**/*")
 	r.Static("/static", "../public")
+	r.LoadHTMLGlob("../templates/**/*")
 	r.GET("/", index)
 	r.GET("/err", err)
 	r.GET("/login", login)
