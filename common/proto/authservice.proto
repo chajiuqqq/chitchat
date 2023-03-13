@@ -1,0 +1,50 @@
+syntax = "proto3";
+
+package chitchat;
+
+option go_package = "github.com/chajiuqqq/chitchat/pb";
+message AuthSession{
+    string Uuid =1;
+    string Email =2;
+    uint32 UserId=3;
+}
+message CheckRequest{
+    string Uuid =1;
+}
+message CheckResponse{
+    bool Exist =1;
+    AuthSession sess=2;
+}
+message GetUserByEmailRequest{
+    string Email =1;
+}
+message AuthUser{
+    uint32 ID =5;
+    string Uuid    =1;
+	string Name    =2;
+	string Email   =3;
+	string Password=4;
+}
+message GetUserByEmailResponse{
+    bool Exist=1;
+    AuthUser user=2;
+}
+
+message EncryptRequest{
+    string src=1;
+}
+message EncryptResponse{
+    string out=1;
+}
+
+message NewSessionReq{
+    uint32 UserId =1;
+    string Email = 2;
+}
+service AuthService{
+    rpc Check(CheckRequest) returns (CheckResponse){}
+    rpc GetUserByEmail(GetUserByEmailRequest) returns (GetUserByEmailResponse){}
+    rpc Encrypt(EncryptRequest)returns(EncryptResponse){}
+    rpc NewSession(NewSessionReq) returns (AuthSession){}
+}
+

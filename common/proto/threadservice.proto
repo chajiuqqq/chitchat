@@ -1,0 +1,50 @@
+syntax = "proto3";
+
+package chitchat;
+
+option go_package = "github.com/chajiuqqq/chitchat/pb";
+message TheadUser{
+    string Uuid        =1;
+	string Name    =2;
+	string Email   =3;
+	string Password=4;
+}
+message TheadPost{
+   string  Uuid    =1;
+   string  Body    =2;
+   uint32 UserId   =3;
+   uint32 ThreadId =4;
+   TheadUser User       =5;
+   string CreatedAt =6;
+}
+message GetThreadRequest{
+    uint32 ThreadId = 1;
+}
+message GetThreadResponse{
+    uint32 ID=6;
+    string Uuid = 1;
+    string Topic =2 ;
+    uint32 UserId = 3;
+    repeated TheadPost Posts = 4;
+    TheadUser User = 5;
+    string CreatedAt =7;
+}
+
+message AddPostRequest{
+    uint32 ThreadId = 1;
+    string Body = 2;
+    uint32 UserId = 3;
+}
+message CreateThreadReq{
+    string Uuid = 1;
+    string Topic =2 ;
+    uint32 UserId = 3;
+}
+message Empty {}
+service ThreadService{
+    rpc Get(GetThreadRequest) returns (GetThreadResponse){}
+    rpc GetAll(Empty) returns (stream GetThreadResponse) {}
+    rpc Create(CreateThreadReq) returns (Empty){}
+    rpc AddPost(AddPostRequest) returns (Empty){}
+
+}

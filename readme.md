@@ -1,4 +1,4 @@
-# Chitchat website
+# Chitchat website micro-version
 
 A demo from book go-web.
 
