@@ -15,7 +15,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-var rpcClient = rpc.New()
+var rpcClient = rpc.NewRpcClient()
 
 func myLoginCheck() gin.HandlerFunc {
 	return func(c *gin.Context) {

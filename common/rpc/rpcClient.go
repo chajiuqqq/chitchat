@@ -9,8 +9,13 @@ import (
 	"github.com/chajiuqqq/chitchat/common/entity"
 	"github.com/chajiuqqq/chitchat/common/pb"
 	"github.com/gin-gonic/gin"
+	capi "github.com/hashicorp/consul/api"
 	"google.golang.org/grpc"
 )
+
+type Consumer interface {
+	Reload(srv *capi.AgentService) (done chan struct{}, err error)
+}
 
 type rpcClient struct {
 	MyAuthServiceClient   pb.AuthServiceClient
@@ -19,7 +24,7 @@ type rpcClient struct {
 
 var myRpcCient *rpcClient
 
-func New() *rpcClient {
+func NewRpcClient() *rpcClient {
 	if myRpcCient != nil {
 		return myRpcCient
 	}
@@ -64,6 +69,7 @@ func New() *rpcClient {
 		MyAuthServiceClient:   myAuthClient,
 		MyThreadServiceClient: myThreadServiceClient,
 	}
+	NewDiscoveryClient().HealthCheck(myRpcCient)
 	return myRpcCient
 
 }
@@ -84,4 +90,33 @@ func (rpc *rpcClient) SessionCheck(c *gin.Context) (sess *entity.Session, err er
 		Email:  checkResponse.Sess.Email,
 		UserId: uint(checkResponse.Sess.UserId),
 	}, nil
+}
+
+
+//服务地址发生变化时，reload当前rpc连接
+func (rpc *rpcClient) Reload(srv *capi.AgentService) (done chan struct{}, err error) {
+	done = make(chan struct{})
+	log.Println("reload ", srv.Service, "new port:", srv.Port)
+	switch srv.Service {
+	case "authService":
+		defer close(done)
+		address := fmt.Sprintf("%s:%d", srv.Address, srv.Port)
+		conn, err := grpc.Dial(address, grpc.WithInsecure())
+		if err != nil {
+			log.Panic(err)
+		}
+		rpc.MyAuthServiceClient = pb.NewAuthServiceClient(conn)
+
+	case "threadService":
+
+		defer close(done)
+		address := fmt.Sprintf("%s:%d", srv.Address, srv.Port)
+		conn, err := grpc.Dial(address, grpc.WithInsecure())
+		if err != nil {
+			log.Panic(err)
+		}
+		rpc.MyThreadServiceClient = pb.NewThreadServiceClient(conn)
+
+	}
+	return
 }
