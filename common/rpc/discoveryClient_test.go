@@ -18,8 +18,3 @@ func TestDiscoverService(t *testing.T) {
 	}
 	t.Log(address)
 }
-
-func TestHealthCheck(t *testing.T) {
-	rpc := NewRpcClient()
-	NewDiscoveryClient().HealthCheck(rpc)
-}

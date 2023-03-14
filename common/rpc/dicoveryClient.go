@@ -47,7 +47,7 @@ func (d *discoveryClient) HealthCheck(c Consumer) {
 		for {
 			select {
 			case <-time.Tick(time.Second):
-				log.Println("check...")
+				// log.Println("check...")
 				for srvName, srv := range d.services {
 					status, checkInfo, err := d.Client.Agent().AgentHealthServiceByID(srvName)
 					if err != nil {
@@ -57,7 +57,7 @@ func (d *discoveryClient) HealthCheck(c Consumer) {
 						log.Println("service critical:", srvName)
 					}
 					if statusChanged(srv, checkInfo) {
-						log.Println("status changed")
+						log.Println(srvName,"status changed")
 						done, err := c.Reload(checkInfo.Service)
 						<-done
 						log.Println("reload finished")
