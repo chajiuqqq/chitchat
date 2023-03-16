@@ -19,7 +19,9 @@ func NewDiscoveryClient() *discoveryClient {
 	if myDiscoveryClient != nil {
 		return myDiscoveryClient
 	}
-	c, err := capi.NewClient(capi.DefaultConfig())
+	config:=capi.DefaultConfig()
+	config.Address = "consul:8500"
+	c, err := capi.NewClient(config)
 	if err != nil {
 		log.Panic("fail to create discoveryClient,", err)
 	}
