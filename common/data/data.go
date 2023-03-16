@@ -14,7 +14,7 @@ var (
 
 func init() {
 	var err error
-	dsn := "user=postgres password=mkQ445683 dbname=chitchat sslmode=disable"
+	dsn := "host=db user=chitchat password=chitchatpass dbname=chitchat sslmode=disable"
 	Db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		log.Fatal(err)
