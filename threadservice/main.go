@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"net"
@@ -13,20 +14,23 @@ import (
 	"google.golang.org/grpc"
 )
 
-const (
-	rpcPort  = 8000
-	httpPort = 8001
-	address  = "127.0.0.1"
+var (
+	rpcPort  = flag.Int("rpcPort", 8000, "bind for RPC")
+	httpPort = flag.Int("httpPort", 8001, "bind for http")
+	address  = flag.String("address", "0.0.0.0", "bind ip for both RPC and http")
 )
 
 func main() {
+	flag.Parse()
 	group := new(errgroup.Group)
 
 	group.Go(func() error {
-		lis, err := net.Listen("tcp", fmt.Sprintf("%s:%d", address, rpcPort))
+		lis, err := net.Listen("tcp", fmt.Sprintf("%s:%d", *address, *rpcPort))
 		if err != nil {
 			log.Fatalf("failed to listen: %v", err)
 		}
+
+		log.Println("RPC listen on ", *address, ":", *rpcPort)
 		grpcServer := grpc.NewServer()
 		threadService := new(service.ThreadService)
 		pb.RegisterThreadServiceServer(grpcServer, threadService)
@@ -34,7 +38,9 @@ func main() {
 	})
 	group.Go(func() error {
 		// Get a new client
-		client, err := capi.NewClient(capi.DefaultConfig())
+		config := capi.DefaultConfig()
+		config.Address = "consul:8500"
+		client, err := capi.NewClient(config)
 		if err != nil {
 			panic(err)
 		}
@@ -46,7 +52,7 @@ func main() {
 		r.GET("/health", func(ctx *gin.Context) {
 			ctx.JSON(200, "ok")
 		})
-		return r.Run(fmt.Sprintf("%s:%d", address, httpPort))
+		return r.Run(fmt.Sprintf("%s:%d", *address, *httpPort))
 	})
 
 	// 等待所有 goroutine 完成
@@ -56,13 +62,14 @@ func main() {
 
 }
 func registerService(client *capi.Client) error {
+	host := "thread-service"
 	// 创建服务实例
 	service := &capi.AgentServiceRegistration{
 		Name:    "threadService",
-		Port:    rpcPort,
-		Address: address,
+		Port:    *rpcPort,
+		Address: host,
 		Check: &capi.AgentServiceCheck{
-			HTTP:     fmt.Sprintf("http://%s:%d/health", address, httpPort),
+			HTTP:     fmt.Sprintf("http://%s:%d/health", host, *httpPort),
 			Interval: "10s",
 			Timeout:  "2s",
 		},

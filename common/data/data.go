@@ -19,5 +19,6 @@ func init() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	Db.AutoMigrate(&Post{}, &Thread{}, &Session{}, &User{})
+	Db.AutoMigrate(&Thread{})
+	Db.AutoMigrate(&User{}, &Post{}, &Session{})
 }

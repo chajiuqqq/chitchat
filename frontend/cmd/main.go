@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"net/http"
@@ -31,6 +32,7 @@ func myAuth() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		if _, exist := c.Get("sess"); !exist {
 			c.Redirect(http.StatusFound, "/login")
+			return
 		}
 		c.Next()
 	}
@@ -53,12 +55,13 @@ func recovery() gin.HandlerFunc {
 	}
 }
 
-const (
-	port = "9090"
+var (
+	port = flag.Int("httpPort", 8080, "bind http")
 )
 
 func main() {
-	log.Println("Chitchat start at %s", port)
+	flag.Parse()
+	log.Println("Chitchat start at %d", *port)
 	r := gin.New()
 	r.Use(gin.Logger(), myLoginCheck(), recovery())
 	r.SetFuncMap(template.FuncMap{
@@ -89,5 +92,5 @@ func main() {
 	threadGroup.GET("/new", newThread)
 	threadGroup.POST("/create", createThread)
 	threadGroup.POST("/post", postThread)
-	r.Run(fmt.Sprintf(":%s", port))
+	r.Run(fmt.Sprintf(":%d", *port))
 }
