@@ -1,0 +1,31 @@
+name: Docker Build and Push
+on:
+  push:
+    branches:
+      - micro
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+    - name: Build Docker images
+      run: |
+        TAG=$(git describe --tags --abbrev=0)
+        docker-compose build --build-arg TAG=${TAG}
+    - name: Push Docker images
+      env:
+        DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+        DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+      run: |
+        REGISTRY_USERNAME="${DOCKER_USERNAME}"
+        REGISTRY_PASSWORD="${DOCKER_PASSWORD}"
+        IMAGE_NAMES=(
+          "chajiuqqq/go-chitchat-frontend"
+          "chajiuqqq/go-chitchat-thread-service"
+          "chajiuqqq/go-chitchat-auth-service"
+        )
+        for IMAGE_NAME in "${IMAGE_NAMES[@]}"; do
+          docker login -u "${REGISTRY_USERNAME}" -p "${REGISTRY_PASSWORD}"
+          docker push "${IMAGE_NAME}:${TAG}"
+        done
