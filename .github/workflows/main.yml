@@ -2,12 +2,17 @@ name: Docker Build and Push
 on:
   push:
     branches:
-      - micro
+      - 'micro'
   workflow_dispatch:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
     steps:
+    -
+      name: Checkout
+      uses: actions/checkout@v3
+      with:
+        ref: 'micro'
     -
       # Setting up Docker Buildx with docker-container driver is required
       # at the moment to be able to use a subdirectory with Git context
