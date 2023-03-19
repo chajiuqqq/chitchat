@@ -59,6 +59,11 @@ var (
 	port = flag.Int("httpPort", 8080, "bind http")
 )
 
+func init() {
+	var cstZone = time.FixedZone("CST", 8*3600) // 东八
+	time.Local = cstZone
+}
+
 func main() {
 	flag.Parse()
 	log.Println("Chitchat start at %d", *port)
