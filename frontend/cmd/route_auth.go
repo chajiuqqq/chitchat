@@ -39,7 +39,7 @@ func authenticate(c *gin.Context) {
 		if err != nil {
 			log.Panic("can't get new session,", err)
 		}
-		c.SetCookie("_cookie", session.Uuid, 3600, "/", "", true, true)
+		c.SetCookie("_cookie", session.Uuid, 3153600, "/", "", true, true)
 		c.Set("sess", session)
 		c.Redirect(http.StatusFound, "/")
 	} else {
