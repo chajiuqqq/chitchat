@@ -13,35 +13,34 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-
 func authenticate(c *gin.Context) {
-	getUserByEmailResponse, err := rpcClient.MyAuthServiceClient.GetUserByEmail(context.Background(),&pb.GetUserByEmailRequest{
+	getUserByEmailResponse, err := rpcClient.MyAuthServiceClient.GetUserByEmail(context.Background(), &pb.GetUserByEmailRequest{
 		Email: c.PostForm("email"),
 	})
-	if err!=nil{
+	if err != nil {
 		panic(err)
 	}
 
-	encryptResponse,err :=rpcClient.MyAuthServiceClient.Encrypt(context.Background(),&pb.EncryptRequest{
+	encryptResponse, err := rpcClient.MyAuthServiceClient.Encrypt(context.Background(), &pb.EncryptRequest{
 		Src: c.PostForm("password"),
 	})
 
-	if err!=nil{
+	if err != nil {
 		panic(err)
 	}
 
-	if !getUserByEmailResponse.Exist{
+	if !getUserByEmailResponse.Exist {
 		c.Redirect(http.StatusFound, "/login")
-	}else if user:=getUserByEmailResponse.User;user.Password == encryptResponse.Out {
-		session,err := rpcClient.MyAuthServiceClient.NewSession(context.Background(),&pb.NewSessionReq{
+	} else if user := getUserByEmailResponse.User; user.Password == encryptResponse.Out {
+		session, err := rpcClient.MyAuthServiceClient.NewSession(context.Background(), &pb.NewSessionReq{
 			UserId: user.ID,
-			Email: user.Email,
+			Email:  user.Email,
 		})
-		if err!=nil{
-			log.Panic("can't get new session,",err)
+		if err != nil {
+			log.Panic("can't get new session,", err)
 		}
-		c.SetCookie("_cookie", session.Uuid, 3600, "/", "localhost", true, true)
-		c.Set("sess",session)
+		c.SetCookie("_cookie", session.Uuid, 3600, "/", "", true, true)
+		c.Set("sess", session)
 		c.Redirect(http.StatusFound, "/")
 	} else {
 		c.Redirect(http.StatusFound, "/login")
@@ -63,11 +62,11 @@ func signup(c *gin.Context) {
 }
 
 func signupAccount(c *gin.Context) {
-	encryptResponse,err:=rpcClient.MyAuthServiceClient.Encrypt(context.Background(),&pb.EncryptRequest{
+	encryptResponse, err := rpcClient.MyAuthServiceClient.Encrypt(context.Background(), &pb.EncryptRequest{
 		Src: c.PostForm("password"),
 	})
-	if err!=nil{
-		utils.ErrorMsg(c,err.Error())
+	if err != nil {
+		utils.ErrorMsg(c, err.Error())
 		return
 	}
 	user := entity.User{
@@ -81,6 +80,6 @@ func signupAccount(c *gin.Context) {
 }
 
 func err(c *gin.Context) {
-	_,exist:=c.Get("sess")
+	_, exist := c.Get("sess")
 	c.HTML(200, "error.tmpl", gin.H{"IsPublic": !exist, "Msg": c.Query("msg")})
 }

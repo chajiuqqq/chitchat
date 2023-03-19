@@ -16,6 +16,9 @@ services:
       context: .
       dockerfile: ./threadservice/Dockerfile
     image: chajiuqqq/chitchat_threadservice
+    depends_on:
+      - db
+      - consul
     restart: always
     environment:
       - RPC_PORT=8000
@@ -29,6 +32,9 @@ services:
       context: .
       dockerfile: ./authservice/Dockerfile
     image: chajiuqqq/chitchat_authservice
+    depends_on:
+      - db
+      - consul
     restart: always
     environment:
       - RPC_PORT=8100
@@ -42,6 +48,9 @@ services:
       context: .
       dockerfile: ./frontend/Dockerfile
     image: chajiuqqq/chitchat_frontend
+    depends_on:
+      - db
+      - consul
     restart: always
     environment:
       - HTTP_PORT=8080

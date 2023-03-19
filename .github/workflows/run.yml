@@ -33,6 +33,5 @@ jobs:
             "chajiuqqq/chitchat_authservice"
           )
           for IMAGE_NAME in "${IMAGE_NAMES[@]}"; do
-            docker login -u "${REGISTRY_USERNAME}" -p "${REGISTRY_PASSWORD}"
             docker push "${IMAGE_NAME}:latest"
           done

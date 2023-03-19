@@ -4,7 +4,9 @@ COPY ./authservice /app/authservice
 COPY ./common /app/common
 WORKDIR /app/authservice
 RUN go env -w GO111MODULE=on && go env -w GOPROXY=https://goproxy.cn,direct && go install .
-
+ENV RPC_PORT=8100
+ENV HTTP_PORT=8101
+ENV ADDRESS=0.0.0.0
 ENTRYPOINT exec /go/bin/authservice --rpcPort ${RPC_PORT} --httpPort ${HTTP_PORT} --address ${ADDRESS}
 EXPOSE ${RPC_PORT}
 EXPOSE ${HTTP_PORT}
