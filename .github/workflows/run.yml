@@ -26,9 +26,9 @@ jobs:
           REGISTRY_USERNAME="${DOCKER_USERNAME}"
           REGISTRY_PASSWORD="${DOCKER_PASSWORD}"
           IMAGE_NAMES=(
-            "chajiuqqq/go-chitchat-frontend"
-            "chajiuqqq/go-chitchat-thread-service"
-            "chajiuqqq/go-chitchat-auth-service"
+            "chitchat_frontend"
+            "chitchat_threadservice"
+            "chitchat_authservice"
           )
           for IMAGE_NAME in "${IMAGE_NAMES[@]}"; do
             docker login -u "${REGISTRY_USERNAME}" -p "${REGISTRY_PASSWORD}"

@@ -15,6 +15,7 @@ services:
     build: 
       context: .
       dockerfile: ./threadservice/Dockerfile
+    image: chitchat_threadservice
     restart: always
     environment:
       - RPC_PORT=8000
@@ -27,6 +28,7 @@ services:
     build: 
       context: .
       dockerfile: ./authservice/Dockerfile
+    image: chitchat_authservice
     restart: always
     environment:
       - RPC_PORT=8100
@@ -39,6 +41,7 @@ services:
     build: 
       context: .
       dockerfile: ./frontend/Dockerfile
+    image: chitchat_frontend
     restart: always
     environment:
       - HTTP_PORT=8080
