@@ -53,7 +53,7 @@ func login(c *gin.Context) {
 }
 
 func logout(c *gin.Context) {
-	c.SetCookie("_cookie", "", -1, "/", "localhost", true, true)
+	c.SetCookie("_cookie", "", -1, "/", "", true, true)
 	c.Redirect(http.StatusFound, "/")
 }
 
