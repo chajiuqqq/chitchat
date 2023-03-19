@@ -16,7 +16,7 @@ jobs:
         uses: docker/setup-buildx-action@v2
       - name: Build Docker images
         run: |
-          docker-compose build --build-arg TAG=latest
+          docker-compose build
       - name: Push Docker images
         env:
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
@@ -25,9 +25,9 @@ jobs:
           REGISTRY_USERNAME="${DOCKER_USERNAME}"
           REGISTRY_PASSWORD="${DOCKER_PASSWORD}"
           IMAGE_NAMES=(
-            "chitchat_frontend"
-            "chitchat_threadservice"
-            "chitchat_authservice"
+            "chajiuqqq/chitchat_frontend"
+            "chajiuqqq/chitchat_threadservice"
+            "chajiuqqq/chitchat_authservice"
           )
           for IMAGE_NAME in "${IMAGE_NAMES[@]}"; do
             docker login -u "${REGISTRY_USERNAME}" -p "${REGISTRY_PASSWORD}"
