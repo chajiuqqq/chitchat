@@ -16,8 +16,7 @@ jobs:
         uses: docker/setup-buildx-action@v2
       - name: Build Docker images
         run: |
-          TAG=$(git describe --tags --abbrev=0)
-          docker-compose build --build-arg TAG=${TAG}
+          docker-compose build --build-arg TAG=latest
       - name: Push Docker images
         env:
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
@@ -32,5 +31,5 @@ jobs:
           )
           for IMAGE_NAME in "${IMAGE_NAMES[@]}"; do
             docker login -u "${REGISTRY_USERNAME}" -p "${REGISTRY_PASSWORD}"
-            docker push "${IMAGE_NAME}:${TAG}"
+            docker push "${IMAGE_NAME}:latest"
           done
