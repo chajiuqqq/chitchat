@@ -9,7 +9,7 @@
     {{ template "navbar.tmpl" .}}
     <div class="container">
       <p class="lead">
-        <a href="/thread/new">Start a thread</a> or join one below!
+        <a href="/frontend/thread/new">Start a thread</a> or join one below!
       </p>
 
       {{ range .Threads }}
@@ -23,7 +23,7 @@
           Started by {{ .User.Name }} - {{ .CreatedAt }} - {{ . | NumReplies }}
           posts.
           <div class="pull-right">
-            <a href="/thread/read/{{.ID }}">Read more</a>
+            <a href="/frontend/thread/read/{{.ID }}">Read more</a>
           </div>
         </div>
       </div>

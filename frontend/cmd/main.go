@@ -14,6 +14,8 @@ import (
 	"github.com/chajiuqqq/chitchat/common/rpc"
 	"github.com/chajiuqqq/chitchat/frontend/utils"
 	"github.com/gin-gonic/gin"
+	capi "github.com/hashicorp/consul/api"
+	"golang.org/x/sync/errgroup"
 )
 
 var rpcClient = rpc.NewRpcClient()
@@ -91,11 +93,57 @@ func main() {
 	r.POST("/signup_account", signupAccount)
 	r.POST("/authenticate", authenticate)
 	r.GET("/thread/read/:tid", readThread)
+	r.GET("/health", func(ctx *gin.Context) {
+		ctx.JSON(200, "ok")
+	})
 
 	threadGroup := r.Group("/thread")
 	threadGroup.Use(myAuth())
 	threadGroup.GET("/new", newThread)
 	threadGroup.POST("/create", createThread)
 	threadGroup.POST("/post", postThread)
-	r.Run(fmt.Sprintf(":%d", *port))
+
+	group := new(errgroup.Group)
+	group.Go(func() error {
+		// Get a new client
+		config := capi.DefaultConfig()
+		config.Address = "consul:8500"
+		client, err := capi.NewClient(config)
+		if err != nil {
+			panic(err)
+		}
+		return registerService(client)
+	})
+
+	group.Go(func() error {
+
+		return r.Run(fmt.Sprintf(":%d", *port))
+	})
+	// 等待所有 goroutine 完成
+	if err := group.Wait(); err != nil {
+		fmt.Println("Error:", err)
+	}
+}
+
+func registerService(client *capi.Client) error {
+	host := "frontend"
+	// 创建服务实例
+	service := &capi.AgentServiceRegistration{
+		Name:    "frontend",
+		Port:    *port,
+		Address: host,
+		Check: &capi.AgentServiceCheck{
+			HTTP:     fmt.Sprintf("http://%s:%d/health", host, *port),
+			Interval: "10s",
+			Timeout:  "2s",
+		},
+	}
+
+	// 注册服务
+	err := client.Agent().ServiceRegister(service)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

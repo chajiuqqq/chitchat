@@ -4,7 +4,7 @@
 <html lang="en">
   <head>
     {{ template "header.tmpl" .}}
-    <link href="/static/css/login.css" rel="stylesheet" />
+    <link href="/frontend/static/css/login.css" rel="stylesheet" />
   </head>
   <body>
     {{ template "navbar.tmpl" .}}
@@ -12,7 +12,7 @@
       <form
         class="form-signin"
         role="form"
-        action="/signup_account"
+        action="/frontend/signup_account"
         method="post"
       >
         <h2 class="form-signin-heading">

@@ -11,6 +11,17 @@ services:
     image: "consul:latest"
     ports:
       - "8500:8500"
+  gateway:
+    build: 
+      context: ./gateway
+      dockerfile: ./Dockerfile
+    image: chajiuqqq/chitchat_gateway
+    environment:
+      - CONSUL_HOST=consul
+      - CONSUL_PORT=8500
+      - GATEWAY_PORT=8899
+    ports:
+      - "7788:8899"
   thread-service:
     build: 
       context: .

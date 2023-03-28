@@ -13,7 +13,7 @@
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>
       </button>
-      <a class="navbar-brand" href="/">
+      <a class="navbar-brand" href="/frontend">
         <i class="fa fa-comments-o"></i>
         ChitChat
       </a>
@@ -24,9 +24,9 @@
       </ul>
       <ul class="nav navbar-nav navbar-right">
         {{ if .IsPublic }}
-        <li><a href="/login">Login</a></li>
+        <li><a href="/frontend/login">Login</a></li>
         {{ else }}
-        <li><a href="/logout">Logout</a></li>
+        <li><a href="/frontend/logout">Logout</a></li>
         {{end}}
       </ul>
     </div>
