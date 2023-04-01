@@ -6,14 +6,15 @@ import (
 	"log"
 	"net"
 
+	"github.com/chajiuqqq/chitchat/common/discover"
 	"github.com/chajiuqqq/chitchat/common/pb"
 	"github.com/chajiuqqq/chitchat/threadservice/service"
 	"github.com/gin-gonic/gin"
-	capi "github.com/hashicorp/consul/api"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
 )
 
+var consulService discover.DiscoveryClient = discover.NewConsulClient()
 var (
 	rpcPort  = flag.Int("rpcPort", 8000, "bind for RPC")
 	httpPort = flag.Int("httpPort", 8001, "bind for http")
@@ -37,14 +38,9 @@ func main() {
 		return grpcServer.Serve(lis)
 	})
 	group.Go(func() error {
-		// Get a new client
-		config := capi.DefaultConfig()
-		config.Address = "consul:8500"
-		client, err := capi.NewClient(config)
-		if err != nil {
-			panic(err)
-		}
-		return registerService(client)
+		host := "threadService"
+		err := consulService.Register("threadService", "", fmt.Sprintf("http://%s:%d/health", host, *httpPort), host, *rpcPort, nil, nil)
+		return err
 	})
 
 	group.Go(func() error {
@@ -60,26 +56,4 @@ func main() {
 		fmt.Println("Error:", err)
 	}
 
-}
-func registerService(client *capi.Client) error {
-	host := "thread-service"
-	// 创建服务实例
-	service := &capi.AgentServiceRegistration{
-		Name:    "threadService",
-		Port:    *rpcPort,
-		Address: host,
-		Check: &capi.AgentServiceCheck{
-			HTTP:     fmt.Sprintf("http://%s:%d/health", host, *httpPort),
-			Interval: "10s",
-			Timeout:  "2s",
-		},
-	}
-
-	// 注册服务
-	err := client.Agent().ServiceRegister(service)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }

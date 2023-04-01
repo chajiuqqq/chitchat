@@ -29,6 +29,9 @@ message GetThreadResponse{
     TheadUser User = 5;
     string CreatedAt =7;
 }
+message GetAllResponse{
+    repeated GetThreadResponse Threads = 1;
+}
 
 message AddPostRequest{
     uint32 ThreadId = 1;
@@ -43,7 +46,7 @@ message CreateThreadReq{
 message Empty {}
 service ThreadService{
     rpc Get(GetThreadRequest) returns (GetThreadResponse){}
-    rpc GetAll(Empty) returns (stream GetThreadResponse) {}
+    rpc GetAll(Empty) returns (GetAllResponse) {}
     rpc Create(CreateThreadReq) returns (Empty){}
     rpc AddPost(AddPostRequest) returns (Empty){}
 

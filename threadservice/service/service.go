@@ -23,13 +23,16 @@ func (ts *ThreadService) Get(ctx context.Context, req *pb.GetThreadRequest) (*pb
 	}
 	return util.ToThreadRPC(thread), err
 }
-func (ts *ThreadService) GetAll(em *pb.Empty, server pb.ThreadService_GetAllServer) error {
+func (ts *ThreadService) GetAll(ctx context.Context, em *pb.Empty) (*pb.GetAllResponse, error) {
 	threads := make([]entity.Thread, 0)
 	err := Db.Preload("Posts").Preload("Posts.User").Preload("User").Find(&threads).Error
+	rpcTheads := make([]*pb.GetThreadResponse, 0)
 	for _, th := range threads {
-		server.Send(util.ToThreadRPC(&th))
+		rpcTheads = append(rpcTheads, util.ToThreadRPC(&th))
 	}
-	return err
+	return &pb.GetAllResponse{
+		Threads: rpcTheads,
+	}, err
 }
 func (ts *ThreadService) AddPost(ctx context.Context, req *pb.AddPostRequest) (*pb.Empty, error) {
 	tid := req.ThreadId

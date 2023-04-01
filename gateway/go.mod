@@ -2,7 +2,11 @@ module github.com/chajiuqqq/chitchat/gateway
 
 go 1.19
 
-require github.com/hashicorp/consul/api v1.20.0
+require (
+	github.com/afex/hystrix-go v0.0.0-20180502004556-fa1af6a1f4f5
+	github.com/chajiuqqq/chitchat/common v0.0.0-00010101000000-000000000000
+	github.com/hashicorp/consul/api v1.20.0
+)
 
 require (
 	github.com/armon/go-metrics v0.0.0-20180917152333-f0300d1749da // indirect
@@ -14,8 +18,11 @@ require (
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
 	github.com/hashicorp/serf v0.10.1 // indirect
 	github.com/mattn/go-colorable v0.1.6 // indirect
-	github.com/mattn/go-isatty v0.0.12 // indirect
+	github.com/mattn/go-isatty v0.0.17 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/mitchellh/mapstructure v1.4.1 // indirect
-	golang.org/x/sys v0.0.0-20220728004956-3c1f35247d10 // indirect
+	github.com/smartystreets/goconvey v1.7.2 // indirect
+	golang.org/x/sys v0.5.0 // indirect
 )
+
+replace github.com/chajiuqqq/chitchat/common => ../common

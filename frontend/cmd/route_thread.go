@@ -19,12 +19,12 @@ func newThread(c *gin.Context) {
 
 func createThread(c *gin.Context) {
 	sess := c.MustGet("sess").(*entity.Session)
-	rpcClient.MyThreadServiceClient.Create(context.Background(), &pb.CreateThreadReq{
+	threadClient.Create(context.Background(), &pb.CreateThreadReq{
 		Topic:  c.PostForm("topic"),
 		Uuid:   util.GenerateUuid(),
 		UserId: uint32(sess.UserId),
 	})
-	c.Redirect(http.StatusFound, "/")
+	c.Redirect(http.StatusFound, "/frontend")
 
 }
 
@@ -33,7 +33,7 @@ func postThread(c *gin.Context) {
 	sess := c.MustGet("sess").(*entity.Session)
 	tid, _ := strconv.Atoi(c.PostForm("id"))
 	body := c.PostForm("body")
-	_, err := rpcClient.MyThreadServiceClient.AddPost(context.Background(), &pb.AddPostRequest{
+	err := threadClient.AddPost(context.Background(), &pb.AddPostRequest{
 		ThreadId: uint32(tid),
 		Body:     body,
 		UserId:   uint32(sess.UserId),
@@ -41,14 +41,14 @@ func postThread(c *gin.Context) {
 	if err != nil {
 		log.Panic(err)
 	}
-	url := fmt.Sprintf("/thread/read/%d", tid)
+	url := fmt.Sprintf("/frontend/thread/read/%d", tid)
 	c.Redirect(http.StatusFound, url)
 }
 
 func readThread(c *gin.Context) {
 	_, exist := c.Get("sess")
 	tid, _ := strconv.Atoi(c.Param("tid"))
-	getThreadRes, err := rpcClient.MyThreadServiceClient.Get(context.Background(), &pb.GetThreadRequest{
+	getThreadRes, err := threadClient.Get(context.Background(), &pb.GetThreadRequest{
 		ThreadId: uint32(tid),
 	})
 	if err != nil {

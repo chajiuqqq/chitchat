@@ -13,6 +13,9 @@ import (
 	"syscall"
 
 	"github.com/hashicorp/consul/api"
+	"github.com/chajiuqqq/chitchat/gateway/handler"
+	"github.com/chajiuqqq/chitchat/common/discover"
+	"github.com/chajiuqqq/chitchat/common/loadbalance"
 )
 
 var (
@@ -23,14 +26,8 @@ var (
 
 func main() {
 	flag.Parse()
-	config := api.DefaultConfig()
-	config.Address = "http://" + *consulHost + ":" + *consulPort
-	client, err := api.NewClient(config)
-	if err != nil {
-		log.Fatalln("Consul client connect fail", err)
-	}
-
-	myProxy := NewProxy(client)
+	discoverClient := discover.NewConsulClient()
+	myProxy := handler.NewHystrixHandler(discoverClient,loadbalance.NewRandomLoadBalance())
 	errChan := make(chan error)
 	go func() {
 		c := make(chan os.Signal)

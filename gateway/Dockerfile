@@ -1,6 +1,7 @@
 FROM golang:1.19.7-bullseye
 SHELL ["/bin/bash", "-c"]
-COPY . /app/gateway
+COPY ./gateway /app/gateway
+COPY ./common /app/common
 WORKDIR /app/gateway
 RUN go env -w GO111MODULE=on && go env -w GOPROXY=https://goproxy.cn,direct && go install .
 ENV GATEWAY_PORT=7000

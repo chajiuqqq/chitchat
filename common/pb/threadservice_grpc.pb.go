@@ -23,7 +23,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ThreadServiceClient interface {
 	Get(ctx context.Context, in *GetThreadRequest, opts ...grpc.CallOption) (*GetThreadResponse, error)
-	GetAll(ctx context.Context, in *Empty, opts ...grpc.CallOption) (ThreadService_GetAllClient, error)
+	GetAll(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetAllResponse, error)
 	Create(ctx context.Context, in *CreateThreadReq, opts ...grpc.CallOption) (*Empty, error)
 	AddPost(ctx context.Context, in *AddPostRequest, opts ...grpc.CallOption) (*Empty, error)
 }
@@ -45,36 +45,13 @@ func (c *threadServiceClient) Get(ctx context.Context, in *GetThreadRequest, opt
 	return out, nil
 }
 
-func (c *threadServiceClient) GetAll(ctx context.Context, in *Empty, opts ...grpc.CallOption) (ThreadService_GetAllClient, error) {
-	stream, err := c.cc.NewStream(ctx, &ThreadService_ServiceDesc.Streams[0], "/chitchat.ThreadService/GetAll", opts...)
+func (c *threadServiceClient) GetAll(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetAllResponse, error) {
+	out := new(GetAllResponse)
+	err := c.cc.Invoke(ctx, "/chitchat.ThreadService/GetAll", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &threadServiceGetAllClient{stream}
-	if err := x.ClientStream.SendMsg(in); err != nil {
-		return nil, err
-	}
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
-	return x, nil
-}
-
-type ThreadService_GetAllClient interface {
-	Recv() (*GetThreadResponse, error)
-	grpc.ClientStream
-}
-
-type threadServiceGetAllClient struct {
-	grpc.ClientStream
-}
-
-func (x *threadServiceGetAllClient) Recv() (*GetThreadResponse, error) {
-	m := new(GetThreadResponse)
-	if err := x.ClientStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
+	return out, nil
 }
 
 func (c *threadServiceClient) Create(ctx context.Context, in *CreateThreadReq, opts ...grpc.CallOption) (*Empty, error) {
@@ -100,7 +77,7 @@ func (c *threadServiceClient) AddPost(ctx context.Context, in *AddPostRequest, o
 // for forward compatibility
 type ThreadServiceServer interface {
 	Get(context.Context, *GetThreadRequest) (*GetThreadResponse, error)
-	GetAll(*Empty, ThreadService_GetAllServer) error
+	GetAll(context.Context, *Empty) (*GetAllResponse, error)
 	Create(context.Context, *CreateThreadReq) (*Empty, error)
 	AddPost(context.Context, *AddPostRequest) (*Empty, error)
 	mustEmbedUnimplementedThreadServiceServer()
@@ -113,8 +90,8 @@ type UnimplementedThreadServiceServer struct {
 func (UnimplementedThreadServiceServer) Get(context.Context, *GetThreadRequest) (*GetThreadResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Get not implemented")
 }
-func (UnimplementedThreadServiceServer) GetAll(*Empty, ThreadService_GetAllServer) error {
-	return status.Errorf(codes.Unimplemented, "method GetAll not implemented")
+func (UnimplementedThreadServiceServer) GetAll(context.Context, *Empty) (*GetAllResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAll not implemented")
 }
 func (UnimplementedThreadServiceServer) Create(context.Context, *CreateThreadReq) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Create not implemented")
@@ -153,25 +130,22 @@ func _ThreadService_Get_Handler(srv interface{}, ctx context.Context, dec func(i
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ThreadService_GetAll_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(Empty)
-	if err := stream.RecvMsg(m); err != nil {
-		return err
+func _ThreadService_GetAll_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Empty)
+	if err := dec(in); err != nil {
+		return nil, err
 	}
-	return srv.(ThreadServiceServer).GetAll(m, &threadServiceGetAllServer{stream})
-}
-
-type ThreadService_GetAllServer interface {
-	Send(*GetThreadResponse) error
-	grpc.ServerStream
-}
-
-type threadServiceGetAllServer struct {
-	grpc.ServerStream
-}
-
-func (x *threadServiceGetAllServer) Send(m *GetThreadResponse) error {
-	return x.ServerStream.SendMsg(m)
+	if interceptor == nil {
+		return srv.(ThreadServiceServer).GetAll(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/chitchat.ThreadService/GetAll",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ThreadServiceServer).GetAll(ctx, req.(*Empty))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _ThreadService_Create_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -222,6 +196,10 @@ var ThreadService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _ThreadService_Get_Handler,
 		},
 		{
+			MethodName: "GetAll",
+			Handler:    _ThreadService_GetAll_Handler,
+		},
+		{
 			MethodName: "Create",
 			Handler:    _ThreadService_Create_Handler,
 		},
@@ -230,12 +208,6 @@ var ThreadService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _ThreadService_AddPost_Handler,
 		},
 	},
-	Streams: []grpc.StreamDesc{
-		{
-			StreamName:    "GetAll",
-			Handler:       _ThreadService_GetAll_Handler,
-			ServerStreams: true,
-		},
-	},
+	Streams:  []grpc.StreamDesc{},
 	Metadata: "threadService.proto",
 }

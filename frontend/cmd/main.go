@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"log"
@@ -8,21 +9,42 @@ import (
 	"text/template"
 	"time"
 
+	"github.com/chajiuqqq/chitchat/common/client"
 	_ "github.com/chajiuqqq/chitchat/common/data"
+	"github.com/chajiuqqq/chitchat/common/discover"
+	"github.com/chajiuqqq/chitchat/common/entity"
 	"github.com/chajiuqqq/chitchat/common/pb"
 	_ "github.com/chajiuqqq/chitchat/common/pb"
-	"github.com/chajiuqqq/chitchat/common/rpc"
 	"github.com/chajiuqqq/chitchat/frontend/utils"
 	"github.com/gin-gonic/gin"
-	capi "github.com/hashicorp/consul/api"
 	"golang.org/x/sync/errgroup"
 )
 
-var rpcClient = rpc.NewRpcClient()
+var authClient = client.NewAuthClient("authservice", client.DefaultLoadBalance)
+var threadClient = client.NewThreadClient("threadservice", client.DefaultLoadBalance)
+var consulService discover.DiscoveryClient = discover.NewConsulClient()
+
+func sessionCheck(c *gin.Context) (sess *entity.Session, err error) {
+	cookie, err := c.Cookie("_cookie")
+	if err != nil {
+		return
+	}
+	checkResponse, err := authClient.Check(context.Background(), &pb.CheckRequest{
+		Uuid: cookie,
+	})
+	if err != nil || !checkResponse.Exist {
+		return
+	}
+	return &entity.Session{
+		Uuid:   cookie,
+		Email:  checkResponse.Sess.Email,
+		UserId: uint(checkResponse.Sess.UserId),
+	}, nil
+}
 
 func myLoginCheck() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		sess, err := rpcClient.SessionCheck(c)
+		sess, err := sessionCheck(c)
 		if err == nil {
 			c.Set("sess", sess)
 		}
@@ -33,7 +55,7 @@ func myLoginCheck() gin.HandlerFunc {
 func myAuth() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		if _, exist := c.Get("sess"); !exist {
-			c.Redirect(http.StatusFound, "/login")
+			c.Redirect(http.StatusFound, "/frontend/login")
 			return
 		}
 		c.Next()
@@ -104,15 +126,11 @@ func main() {
 	threadGroup.POST("/post", postThread)
 
 	group := new(errgroup.Group)
+
 	group.Go(func() error {
-		// Get a new client
-		config := capi.DefaultConfig()
-		config.Address = "consul:8500"
-		client, err := capi.NewClient(config)
-		if err != nil {
-			panic(err)
-		}
-		return registerService(client)
+		host := "frontend"
+		err := consulService.Register("frontend", "", fmt.Sprintf("http://%s:%d/health", host, *port), host, *port, nil, nil)
+		return err
 	})
 
 	group.Go(func() error {
@@ -123,27 +141,4 @@ func main() {
 	if err := group.Wait(); err != nil {
 		fmt.Println("Error:", err)
 	}
-}
-
-func registerService(client *capi.Client) error {
-	host := "frontend"
-	// 创建服务实例
-	service := &capi.AgentServiceRegistration{
-		Name:    "frontend",
-		Port:    *port,
-		Address: host,
-		Check: &capi.AgentServiceCheck{
-			HTTP:     fmt.Sprintf("http://%s:%d/health", host, *port),
-			Interval: "10s",
-			Timeout:  "2s",
-		},
-	}
-
-	// 注册服务
-	err := client.Agent().ServiceRegister(service)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }

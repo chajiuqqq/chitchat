@@ -14,14 +14,14 @@ import (
 )
 
 func authenticate(c *gin.Context) {
-	getUserByEmailResponse, err := rpcClient.MyAuthServiceClient.GetUserByEmail(context.Background(), &pb.GetUserByEmailRequest{
+	getUserByEmailResponse, err := authClient.GetUserByEmail(context.Background(), &pb.GetUserByEmailRequest{
 		Email: c.PostForm("email"),
 	})
 	if err != nil {
 		panic(err)
 	}
 
-	encryptResponse, err := rpcClient.MyAuthServiceClient.Encrypt(context.Background(), &pb.EncryptRequest{
+	encryptResponse, err := authClient.Encrypt(context.Background(), &pb.EncryptRequest{
 		Src: c.PostForm("password"),
 	})
 
@@ -30,9 +30,9 @@ func authenticate(c *gin.Context) {
 	}
 
 	if !getUserByEmailResponse.Exist {
-		c.Redirect(http.StatusFound, "/login")
+		c.Redirect(http.StatusFound, "/frontend/login")
 	} else if user := getUserByEmailResponse.User; user.Password == encryptResponse.Out {
-		session, err := rpcClient.MyAuthServiceClient.NewSession(context.Background(), &pb.NewSessionReq{
+		session, err := authClient.NewSession(context.Background(), &pb.NewSessionReq{
 			UserId: user.ID,
 			Email:  user.Email,
 		})
@@ -41,9 +41,9 @@ func authenticate(c *gin.Context) {
 		}
 		c.SetCookie("_cookie", session.Uuid, 3153600, "/", "", true, true)
 		c.Set("sess", session)
-		c.Redirect(http.StatusFound, "/")
+		c.Redirect(http.StatusFound, "/frontend")
 	} else {
-		c.Redirect(http.StatusFound, "/login")
+		c.Redirect(http.StatusFound, "/frontend/login")
 	}
 
 }
@@ -54,7 +54,7 @@ func login(c *gin.Context) {
 
 func logout(c *gin.Context) {
 	c.SetCookie("_cookie", "", -1, "/", "", true, true)
-	c.Redirect(http.StatusFound, "/")
+	c.Redirect(http.StatusFound, "/frontend")
 }
 
 func signup(c *gin.Context) {
@@ -62,7 +62,7 @@ func signup(c *gin.Context) {
 }
 
 func signupAccount(c *gin.Context) {
-	encryptResponse, err := rpcClient.MyAuthServiceClient.Encrypt(context.Background(), &pb.EncryptRequest{
+	encryptResponse, err := authClient.Encrypt(context.Background(), &pb.EncryptRequest{
 		Src: c.PostForm("password"),
 	})
 	if err != nil {
@@ -76,7 +76,7 @@ func signupAccount(c *gin.Context) {
 		Uuid:     util.GenerateUuid(),
 	}
 	data.Db.Create(&user)
-	c.Redirect(http.StatusFound, "/")
+	c.Redirect(http.StatusFound, "/frontend")
 }
 
 func err(c *gin.Context) {
