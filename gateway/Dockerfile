@@ -5,7 +5,8 @@ COPY ./common /app/common
 WORKDIR /app/gateway
 RUN go env -w GO111MODULE=on && go env -w GOPROXY=https://goproxy.cn,direct && go install .
 ENV GATEWAY_PORT=7000
-ENV CONSUL_PORT=8500
+ENV METRICS_PORT=8500
 ENV CONSUL_HOST=0.0.0.0
-ENTRYPOINT exec /go/bin/gateway --port ${GATEWAY_PORT} --consul-host ${CONSUL_HOST} --consul-port ${CONSUL_PORT}
+ENTRYPOINT exec /go/bin/gateway --port ${GATEWAY_PORT} --metricsPort ${METRICS_PORT} 
 EXPOSE ${GATEWAY_PORT}
+EXPOSE ${METRICS_PORT}
